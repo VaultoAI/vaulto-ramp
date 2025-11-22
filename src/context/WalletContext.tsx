@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { Transaction, TransactionType, TransactionStatus, WalletState } from '../types';
-import { usdToEth, ethToUsd } from '../utils/formatters';
+import { Transaction, TransactionStatus, WalletState } from '../types';
+import { usdToEth } from '../utils/formatters';
+import { useEthPrice } from '../hooks/useEthPrice';
 
 interface WalletContextType {
   wallet: WalletState;
@@ -24,6 +25,7 @@ const generateTransactionId = (): string => {
 };
 
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { price: ethPrice } = useEthPrice();
   const [wallet, setWallet] = useState<WalletState>({
     balance: 0,
     address: generateMockAddress(),
@@ -31,7 +33,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   });
 
   const buyCrypto = useCallback(async (usdAmount: number, externalAddress: string): Promise<string> => {
-    const ethAmount = usdToEth(usdAmount);
+    const ethAmount = usdToEth(usdAmount, ethPrice);
     const transactionId = generateTransactionId();
 
     const transaction: Transaction = {
@@ -69,7 +71,7 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }, 3000);
 
     return transactionId;
-  }, []);
+  }, [ethPrice]);
 
   const receiveCrypto = useCallback(async (ethAmount: number): Promise<string> => {
     const transactionId = generateTransactionId();

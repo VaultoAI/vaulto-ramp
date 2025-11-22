@@ -18,6 +18,7 @@ export const OnRamp: React.FC = () => {
   const [monitoringActive, setMonitoringActive] = useState(false);
   const processedTxHashes = useRef<Set<string>>(new Set());
   const lastCheckedBlock = useRef<bigint | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Monitor transactions when new blocks arrive
   useEffect(() => {
@@ -90,6 +91,23 @@ export const OnRamp: React.FC = () => {
     }
   }, [isConnected, address]);
 
+  // Handle video time update to crop last 2.5 seconds
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      if (video.duration && video.currentTime >= video.duration - 2.5) {
+        video.currentTime = 0;
+      }
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, []);
+
   const handleCopyAddress = async () => {
     if (!address) return;
     try {
@@ -131,7 +149,7 @@ export const OnRamp: React.FC = () => {
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
           <p className="text-gray-600 mb-4">
-            Please connect your wallet to get started. Your wallet address will be used as the receiving address for your crypto purchase.
+            Connect your wallet to receive Ethereum purchases.
           </p>
           <div className="flex justify-center">
             <ConnectButton />
@@ -139,93 +157,95 @@ export const OnRamp: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs Navigation */}
+      {/* Content */}
       {isConnected && (
         <>
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('instructions')}
-              className={`
-                px-6 py-3 font-medium text-sm transition-colors duration-200
-                ${
-                  activeTab === 'instructions'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }
-              `}
-            >
-              1. Instructions
-            </button>
-            <button
-              onClick={() => setActiveTab('address')}
-              className={`
-                px-6 py-3 font-medium text-sm transition-colors duration-200
-                ${
-                  activeTab === 'address'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }
-              `}
-            >
-              2. Address
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`
-                px-6 py-3 font-medium text-sm transition-colors duration-200
-                ${
-                  activeTab === 'history'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }
-              `}
-            >
-              3. History
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          <div className="mt-6">
+          <div>
             {activeTab === 'instructions' && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
-                    1
-                  </span>
-                  How to Buy Crypto with Venmo
-                </h3>
-                <ol className="space-y-3 text-gray-700">
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                      1
-                    </span>
-                    <span>Open the Venmo app on your mobile device</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                      2
-                    </span>
-                    <span>Navigate to the Crypto section (tap the menu icon, then select "Crypto")</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                      3
-                    </span>
-                    <span>Select "Buy" and choose the amount of Ethereum you want to purchase</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                      4
-                    </span>
-                    <span>Complete your purchase using your preferred payment method</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                      5
-                    </span>
-                    <span>After purchasing, select "Send" and paste the receiving address shown below</span>
-                  </li>
-                </ol>
+                <div className="flex gap-6 items-start">
+                  <div className="flex-1 pt-4 flex flex-col">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-6">How to Buy Crypto with Venmo</h3>
+                    <ol className="space-y-4 text-gray-700 mb-6">
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          1
+                        </span>
+                        <span>Open the <strong>Venmo</strong> app on your mobile device</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          2
+                        </span>
+                        <span>Navigate to the <strong>Crypto</strong> section (tap the menu icon, then select "Crypto")</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          3
+                        </span>
+                        <span>Select <strong>"Buy"</strong> and choose the amount of Ethereum you want to purchase</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          4
+                        </span>
+                        <span>Complete your purchase using your preferred payment method</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          5
+                        </span>
+                        <span>After purchasing, select <strong>"Send"</strong> and paste the receiving address shown below</span>
+                      </li>
+                    </ol>
+                    <div className="mt-auto">
+                      <Button
+                        variant="primary"
+                        onClick={() => setActiveTab('address')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    {/* iPhone-style phone frame */}
+                    <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '227.5px' }}>
+                      {/* Dynamic Island with camera and microphone */}
+                      <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1.5 px-2">
+                        {/* Front-facing camera */}
+                        <div className="w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+                        {/* Microphone */}
+                        <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                      </div>
+                      
+                      {/* Screen area */}
+                      <div className="relative bg-black rounded-[2rem] overflow-hidden">
+                        {/* White background behind dynamic island */}
+                        <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-[2rem] z-0"></div>
+                        
+                        {/* White background behind home indicator */}
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-[2rem] z-0"></div>
+                        
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-auto rounded-[2rem]"
+                          style={{ clipPath: 'inset(5% 0 3% 0)' }}
+                        >
+                          <source src="/Offramp demo.mp4" type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                        
+                        {/* Home indicator */}
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gray-400 rounded-full z-10"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -240,7 +260,7 @@ export const OnRamp: React.FC = () => {
                 <p className="text-gray-600 mb-3">
                   Send your purchased Ethereum to this address:
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-6">
                   <div className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 font-mono text-sm text-gray-900">
                     {address}
                   </div>
@@ -253,9 +273,18 @@ export const OnRamp: React.FC = () => {
                     {copied ? 'Copied!' : 'Copy'}
                   </Button>
                 </div>
-                <p className="mt-3 text-sm text-gray-500">
+                <p className="mb-6 text-sm text-gray-500">
                   ⚠️ Make sure to send only Ethereum (ETH) to this address. Sending other tokens may result in loss of funds.
                 </p>
+                <div>
+                  <Button
+                    variant="primary"
+                    onClick={() => setActiveTab('history')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
 

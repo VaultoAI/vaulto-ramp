@@ -9,8 +9,8 @@ interface TransactionStatusProps {
 
 const statusConfig: Record<TransactionStatus, { label: string; color: string; bgColor: string }> = {
   pending: { label: 'Pending', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
-  processing: { label: 'Processing', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  completed: { label: 'Completed', color: 'text-green-600', bgColor: 'bg-green-100' },
+  processing: { label: 'Sent - Pending Confirmation', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  completed: { label: 'Confirmed', color: 'text-green-600', bgColor: 'bg-green-100' },
   failed: { label: 'Failed', color: 'text-red-600', bgColor: 'bg-red-100' },
 };
 
@@ -31,40 +31,50 @@ export const TransactionStatusDisplay: React.FC<TransactionStatusProps> = ({ tra
   const etherscanUrl = transaction.txHash ? getEtherscanUrl(transaction.txHash, chainId) : null;
 
   return (
-    <div className={`${config.bgColor} rounded-lg p-4 mb-4`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className={`font-semibold ${config.color}`}>{config.label}</span>
+    <div className={`${config.bgColor} rounded-lg p-4 mb-4 border-2 ${config.color.replace('text-', 'border-')} border-opacity-30`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className={`font-bold text-base ${config.color}`}>{config.label}</span>
+          {transaction.status === 'processing' && (
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+          )}
+          {transaction.status === 'completed' && (
+            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
         <span className="text-sm text-gray-600">
           {transaction.timestamp.toLocaleTimeString()}
         </span>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         <div className="flex justify-between">
-          <span className="text-gray-700">Amount:</span>
-          <span className="font-medium">{formatETH(transaction.amount)} ETH</span>
+          <span className="text-gray-700 font-medium">Amount:</span>
+          <span className="font-semibold text-gray-900">{formatETH(transaction.amount)} ETH</span>
         </div>
         {transaction.usdAmount && (
           <div className="flex justify-between">
-            <span className="text-gray-700">USD:</span>
-            <span className="font-medium">${formatUSD(transaction.usdAmount)}</span>
+            <span className="text-gray-700 font-medium">USD Value:</span>
+            <span className="font-semibold text-gray-900">${formatUSD(transaction.usdAmount)}</span>
           </div>
         )}
         {transaction.address && (
           <div className="flex justify-between">
-            <span className="text-gray-700">Address:</span>
-            <span className="font-mono text-sm">{formatAddress(transaction.address)}</span>
+            <span className="text-gray-700 font-medium">Address:</span>
+            <span className="font-mono text-sm text-gray-900">{formatAddress(transaction.address)}</span>
           </div>
         )}
         {etherscanUrl && (
-          <div className="mt-3 pt-3 border-t border-gray-300">
+          <div className="mt-4 pt-3 border-t-2 border-gray-300">
             <a
               href={etherscanUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm"
             >
               <svg
-                className="w-4 h-4"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
