@@ -5,6 +5,7 @@ import { useWallet } from '../../hooks/useWallet';
 import { Button } from '../shared/Button';
 import { TransactionStatusDisplay } from './TransactionStatus';
 import { formatEther } from 'viem';
+import { QRCodeSVG } from 'qrcode.react';
 
 type OnRampTab = 'instructions' | 'address' | 'history';
 
@@ -16,9 +17,14 @@ export const OnRamp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<OnRampTab>('instructions');
   const [copied, setCopied] = useState(false);
   const [monitoringActive, setMonitoringActive] = useState(false);
+  const [topBackgroundColor, setTopBackgroundColor] = useState<string>('#ffffff');
+  const [bottomBackgroundColor, setBottomBackgroundColor] = useState<string>('#ffffff');
   const processedTxHashes = useRef<Set<string>>(new Set());
   const lastCheckedBlock = useRef<bigint | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const topBackgroundRef = useRef<HTMLDivElement>(null);
+  const bottomBackgroundRef = useRef<HTMLDivElement>(null);
 
   // Monitor transactions when new blocks arrive
   useEffect(() => {
@@ -51,14 +57,17 @@ export const OnRamp: React.FC = () => {
                 // Get full transaction details
                 try {
                   const txReceipt = await publicClient.getTransactionReceipt({ hash: txHash });
-                  if (txReceipt.status === 'success' && tx.value) {
+                  if (tx.value) {
                     const ethAmount = parseFloat(formatEther(tx.value));
+                    
+                    // Determine transaction status based on receipt status
+                    const status = txReceipt.status === 'success' ? 'completed' : 'failed';
                     
                     // Add to processed set
                     processedTxHashes.current.add(txHash);
                     
                     // Add transaction to wallet context
-                    addDetectedTransaction(txHash, ethAmount, address);
+                    addDetectedTransaction(txHash, ethAmount, address, status);
                   }
                 } catch (err) {
                   // Transaction receipt might not be available yet, skip
@@ -91,13 +100,13 @@ export const OnRamp: React.FC = () => {
     }
   }, [isConnected, address]);
 
-  // Handle video time update to crop last 2.5 seconds
+  // Handle video time update to crop last 1.5 seconds
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      if (video.duration && video.currentTime >= video.duration - 2.5) {
+      if (video.duration && video.currentTime >= video.duration - 1.5) {
         video.currentTime = 0;
       }
     };
@@ -105,6 +114,132 @@ export const OnRamp: React.FC = () => {
     video.addEventListener('timeupdate', handleTimeUpdate);
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, []);
+
+  // Sample colors from video for dynamic backgrounds
+  useEffect(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let lastSampleTime = 0;
+    let hasStartedSampling = false;
+    const sampleInterval = 100; // Sample every 100ms to avoid performance issues
+
+    const sampleColors = () => {
+      // Ensure video has valid dimensions before sampling
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+      
+      // Only start sampling if video has valid dimensions and is ready
+      if (!videoWidth || !videoHeight || videoWidth === 0 || videoHeight === 0) {
+        animationFrameId = requestAnimationFrame(sampleColors);
+        return;
+      }
+
+      // Mark that we've started sampling (video is ready)
+      if (!hasStartedSampling) {
+        hasStartedSampling = true;
+      }
+
+      const currentTime = Date.now();
+      if (currentTime - lastSampleTime < sampleInterval) {
+        animationFrameId = requestAnimationFrame(sampleColors);
+        return;
+      }
+      lastSampleTime = currentTime;
+
+      // Set canvas size to match video
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+
+      // Draw current video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Account for clipPath: 'inset(5% 0 3% 0)'
+      // Top clip is 5%, so sample just below that (around 6-7% from top)
+      // Bottom clip is 3%, so sample just above that (around 2-3% from bottom)
+      const topSampleY = Math.floor(canvas.height * 0.06);
+      const bottomSampleY = Math.floor(canvas.height * 0.97);
+      const sampleX = Math.floor(canvas.width / 2); // Sample from center horizontally
+
+      // Sample multiple pixels horizontally for better color accuracy
+      const sampleWidth = Math.min(20, Math.floor(canvas.width * 0.1));
+      const startX = Math.max(0, sampleX - Math.floor(sampleWidth / 2));
+      const endX = Math.min(canvas.width, sampleX + Math.floor(sampleWidth / 2));
+
+      // Sample top color (average across horizontal line)
+      let topR = 0, topG = 0, topB = 0, topCount = 0;
+      for (let x = startX; x < endX; x++) {
+        const imageData = ctx.getImageData(x, topSampleY, 1, 1);
+        const [r, g, b] = imageData.data;
+        topR += r;
+        topG += g;
+        topB += b;
+        topCount++;
+      }
+      if (topCount > 0) {
+        const avgR = Math.round(topR / topCount);
+        const avgG = Math.round(topG / topCount);
+        const avgB = Math.round(topB / topCount);
+        const topColor = `rgb(${avgR}, ${avgG}, ${avgB})`;
+        setTopBackgroundColor(topColor);
+      }
+
+      // Sample bottom color (average across horizontal line)
+      let bottomR = 0, bottomG = 0, bottomB = 0, bottomCount = 0;
+      for (let x = startX; x < endX; x++) {
+        const imageData = ctx.getImageData(x, bottomSampleY, 1, 1);
+        const [r, g, b] = imageData.data;
+        bottomR += r;
+        bottomG += g;
+        bottomB += b;
+        bottomCount++;
+      }
+      if (bottomCount > 0) {
+        const avgR = Math.round(bottomR / bottomCount);
+        const avgG = Math.round(bottomG / bottomCount);
+        const avgB = Math.round(bottomB / bottomCount);
+        const bottomColor = `rgb(${avgR}, ${avgG}, ${avgB})`;
+        setBottomBackgroundColor(bottomColor);
+      }
+
+      animationFrameId = requestAnimationFrame(sampleColors);
+    };
+
+    // Start sampling only when video has loaded metadata and can play
+    const handleCanPlay = () => {
+      // Wait a bit to ensure video frame is ready, then start sampling
+      setTimeout(() => {
+        if (!hasStartedSampling) {
+          animationFrameId = requestAnimationFrame(sampleColors);
+        }
+      }, 100);
+    };
+
+    // Set up event listeners
+    video.addEventListener('canplay', handleCanPlay);
+    
+    // If video is already ready, start sampling
+    if (video.readyState >= 3) {
+      // Video can play
+      setTimeout(() => {
+        if (!hasStartedSampling) {
+          animationFrameId = requestAnimationFrame(sampleColors);
+        }
+      }, 100);
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      video.removeEventListener('canplay', handleCanPlay);
     };
   }, []);
 
@@ -189,12 +324,6 @@ export const OnRamp: React.FC = () => {
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           4
                         </span>
-                        <span>Complete your purchase using your preferred payment method</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                          5
-                        </span>
                         <span>After purchasing, select <strong>"Send"</strong> and paste the receiving address shown below</span>
                       </li>
                     </ol>
@@ -221,11 +350,25 @@ export const OnRamp: React.FC = () => {
                       
                       {/* Screen area */}
                       <div className="relative bg-black rounded-[2rem] overflow-hidden">
-                        {/* White background behind dynamic island */}
-                        <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-[2rem] z-0"></div>
+                        {/* Hidden canvas for color sampling */}
+                        <canvas
+                          ref={canvasRef}
+                          style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }}
+                        />
                         
-                        {/* White background behind home indicator */}
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-[2rem] z-0"></div>
+                        {/* Dynamic background behind dynamic island */}
+                        <div
+                          ref={topBackgroundRef}
+                          className="absolute top-0 left-0 right-0 h-8 rounded-t-[2rem] z-0"
+                          style={{ backgroundColor: topBackgroundColor }}
+                        ></div>
+                        
+                        {/* Dynamic background behind home indicator */}
+                        <div
+                          ref={bottomBackgroundRef}
+                          className="absolute bottom-0 left-0 right-0 h-8 rounded-b-[2rem] z-0"
+                          style={{ backgroundColor: bottomBackgroundColor }}
+                        ></div>
                         
                         <video
                           ref={videoRef}
@@ -236,7 +379,7 @@ export const OnRamp: React.FC = () => {
                           className="w-full h-auto rounded-[2rem]"
                           style={{ clipPath: 'inset(5% 0 3% 0)' }}
                         >
-                          <source src="/Offramp demo.mp4" type="video/mp4" />
+                          <source src="/Onramp demo.mp4" type="video/mp4" />
                           Your browser does not support the video tag.
                         </video>
                         
@@ -257,9 +400,27 @@ export const OnRamp: React.FC = () => {
                   </span>
                   Your Receiving Address
                 </h3>
-                <p className="text-gray-600 mb-3">
+                <p className="text-gray-600 mb-4">
                   Send your purchased Ethereum to this address:
                 </p>
+                
+                {/* QR Code Display */}
+                <div className="flex justify-center mb-6">
+                  <div className="bg-white border border-gray-300 rounded-lg p-4 inline-block">
+                    {address && (
+                      <QRCodeSVG
+                        value={address}
+                        size={200}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    )}
+                  </div>
+                </div>
+                <p className="text-center text-sm text-gray-600 mb-4">
+                  Scan this QR code with Venmo to send funds to your wallet
+                </p>
+
                 <div className="flex gap-2 mb-6">
                   <div className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 font-mono text-sm text-gray-900">
                     {address}
@@ -273,8 +434,8 @@ export const OnRamp: React.FC = () => {
                     {copied ? 'Copied!' : 'Copy'}
                   </Button>
                 </div>
-                <p className="mb-6 text-sm text-gray-500">
-                  ⚠️ Make sure to send only Ethereum (ETH) to this address. Sending other tokens may result in loss of funds.
+                <p className="mb-6 text-sm text-gray-500 font-bold">
+                  Send only Ethereum (ETH) to this address. Other tokens may result in loss of funds.
                 </p>
                 <div>
                   <Button
@@ -290,23 +451,21 @@ export const OnRamp: React.FC = () => {
 
             {activeTab === 'history' && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
-                    3
-                  </span>
-                  Payment Tracking
-                </h3>
-                {monitoringActive && (
-                  <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Monitoring for incoming transactions...</span>
-                  </div>
-                )}
-                {onrampTransactions.length === 0 ? (
-                  <p className="text-gray-600">
-                    Once you send Ethereum to your receiving address, the transaction will appear here automatically.
-                  </p>
-                ) : (
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+                      3
+                    </span>
+                    Deposit Tracking
+                  </h3>
+                  {monitoringActive && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span>Monitoring for incoming transactions</span>
+                    </div>
+                  )}
+                </div>
+                {onrampTransactions.length > 0 && (
                   <div className="space-y-4">
                     {onrampTransactions.map((transaction) => (
                       <TransactionStatusDisplay key={transaction.id} transaction={transaction} />

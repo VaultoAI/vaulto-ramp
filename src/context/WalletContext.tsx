@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Transaction, TransactionStatus, WalletState } from '../types';
-import { usdToEth } from '../utils/formatters';
+import { usdToEth, ethToUsd } from '../utils/formatters';
 import { useEthPrice } from '../hooks/useEthPrice';
 
 interface WalletContextType {
@@ -10,7 +10,7 @@ interface WalletContextType {
   sendCrypto: (txHash: string, ethAmount: number, usdAmount: number, toAddress: string) => string;
   updateTransactionStatus: (txHash: string, status: TransactionStatus) => void;
   generateAddress: () => string;
-  addDetectedTransaction: (txHash: string, amount: number, address: string) => string;
+  addDetectedTransaction: (txHash: string, amount: number, address: string, status: TransactionStatus) => string;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -150,14 +150,16 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }));
   }, []);
 
-  const addDetectedTransaction = useCallback((txHash: string, amount: number, address: string): string => {
+  const addDetectedTransaction = useCallback((txHash: string, amount: number, address: string, status: TransactionStatus): string => {
     const transactionId = generateTransactionId();
+    const usdAmount = ethToUsd(amount, ethPrice);
     
     const transaction: Transaction = {
       id: transactionId,
       type: 'onramp',
       amount,
-      status: 'processing',
+      usdAmount,
+      status,
       timestamp: new Date(),
       address,
       txHash,
@@ -169,18 +171,8 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       balance: prev.balance + amount,
     }));
 
-    // Update to completed after a short delay
-    setTimeout(() => {
-      setWallet((prev) => ({
-        ...prev,
-        transactions: prev.transactions.map((tx) =>
-          tx.id === transactionId ? { ...tx, status: 'completed' } : tx
-        ),
-      }));
-    }, 2000);
-
     return transactionId;
-  }, []);
+  }, [ethPrice]);
 
   return (
     <WalletContext.Provider value={{ wallet, buyCrypto, receiveCrypto, sendCrypto, updateTransactionStatus, generateAddress, addDetectedTransaction }}>

@@ -10,7 +10,7 @@ interface TransactionStatusProps {
 const statusConfig: Record<TransactionStatus, { label: string; color: string; bgColor: string }> = {
   pending: { label: 'Pending', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
   processing: { label: 'Sent - Pending Confirmation', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  completed: { label: 'Confirmed', color: 'text-green-600', bgColor: 'bg-green-100' },
+  completed: { label: 'Confirmed', color: 'text-green-600', bgColor: 'bg-green-50' },
   failed: { label: 'Failed', color: 'text-red-600', bgColor: 'bg-red-100' },
 };
 
