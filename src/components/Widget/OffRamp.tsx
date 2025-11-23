@@ -292,10 +292,10 @@ export const OffRamp: React.FC = () => {
                       <div className="absolute inset-0 bg-white rounded-[1.75rem] z-0"></div>
                       
                       {/* White background behind dynamic island */}
-                      <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-[1.75rem] z-0"></div>
+                      <div className="absolute top-0 left-0 right-0 min-h-[10%] h-[10%] bg-white rounded-t-[1.75rem] z-0" style={{ height: '10%' }}></div>
                       
                       {/* White background behind home indicator */}
-                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-[1.75rem] z-0"></div>
+                      <div className="absolute bottom-0 left-0 right-0 min-h-[10%] h-[10%] bg-white rounded-b-[1.75rem] z-0" style={{ height: '10%' }}></div>
                       
                       <video
                         ref={videoRef}

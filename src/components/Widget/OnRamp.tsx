@@ -444,15 +444,15 @@ export const OnRamp: React.FC = () => {
                         {/* Dynamic background behind dynamic island */}
                         <div
                           ref={topBackgroundRef}
-                          className="absolute top-0 left-0 right-0 h-8 rounded-t-[1.75rem] z-0"
-                          style={{ backgroundColor: topBackgroundColor }}
+                          className="absolute top-0 left-0 right-0 min-h-[10%] h-[10%] rounded-t-[1.75rem] z-0"
+                          style={{ backgroundColor: topBackgroundColor, height: '10%' }}
                         ></div>
                         
                         {/* Dynamic background behind home indicator */}
                         <div
                           ref={bottomBackgroundRef}
-                          className="absolute bottom-0 left-0 right-0 h-8 rounded-b-[1.75rem] z-0"
-                          style={{ backgroundColor: bottomBackgroundColor }}
+                          className="absolute bottom-0 left-0 right-0 min-h-[10%] h-[10%] rounded-b-[1.75rem] z-0"
+                          style={{ backgroundColor: bottomBackgroundColor, height: '10%' }}
                         ></div>
                         
                         <video
