@@ -25,6 +25,7 @@ export const OnRamp: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const topBackgroundRef = useRef<HTMLDivElement>(null);
   const bottomBackgroundRef = useRef<HTMLDivElement>(null);
+  const isLockedToGray = useRef<boolean>(false);
 
   // Monitor transactions when new blocks arrive
   useEffect(() => {
@@ -215,8 +216,36 @@ export const OnRamp: React.FC = () => {
         const avgR = Math.round(topR / topCount);
         const avgG = Math.round(topG / topCount);
         const avgB = Math.round(topB / topCount);
-        const topColor = `rgb(${avgR}, ${avgG}, ${avgB})`;
-        setTopBackgroundColor(topColor);
+        
+        // Check if color is white or gray
+        const isWhite = avgR > 200 && avgG > 200 && avgB > 200;
+        const rgbVariance = Math.max(
+          Math.abs(avgR - avgG),
+          Math.abs(avgG - avgB),
+          Math.abs(avgR - avgB)
+        );
+        const isGray = !isWhite && avgR < 200 && avgG < 200 && avgB < 200 && rgbVariance < 30;
+        
+        if (isLockedToGray.current) {
+          // If locked to gray, check if white is detected to unlock
+          if (isWhite) {
+            isLockedToGray.current = false;
+            setTopBackgroundColor(`rgb(${avgR}, ${avgG}, ${avgB})`);
+          } else {
+            // Stay locked to gray to prevent flickering
+            setTopBackgroundColor('rgb(114, 114, 114)');
+          }
+        } else {
+          // Not locked - check if gray should be applied
+          if (isGray) {
+            // Lock to gray once detected to prevent flickering
+            isLockedToGray.current = true;
+            setTopBackgroundColor('rgb(114, 114, 114)');
+          } else {
+            // Use sampled color (white)
+            setTopBackgroundColor(`rgb(${avgR}, ${avgG}, ${avgB})`);
+          }
+        }
       }
 
       // Sample bottom color (average across horizontal line)
@@ -347,25 +376,37 @@ export const OnRamp: React.FC = () => {
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           1
                         </span>
-                        <span>Open Venmo app</span>
+                        <span>
+                          <span className="md:hidden">Open Venmo app</span>
+                          <span className="hidden md:inline">Open the Venmo app on your mobile device</span>
+                        </span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           2
                         </span>
-                        <span>Tap <strong>Crypto</strong> icon</span>
+                        <span>
+                          <span className="md:hidden">Tap <strong>Crypto</strong> icon</span>
+                          <span className="hidden md:inline">Tap the <strong>Crypto</strong> icon in the bottom navigation bar</span>
+                        </span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           3
                         </span>
-                        <span>Select <strong>"Buy"</strong> and choose amount</span>
+                        <span>
+                          <span className="md:hidden">Select <strong>"Buy"</strong> and choose amount</span>
+                          <span className="hidden md:inline">Select <strong>"Buy"</strong> and choose the amount of Ethereum you want to purchase</span>
+                        </span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           4
                         </span>
-                        <span>Tap <strong>"Send"</strong> in Venmo and scan QR code or paste address</span>
+                        <span>
+                          <span className="md:hidden">Tap <strong>"Send"</strong> in Venmo and scan QR code or paste address</span>
+                          <span className="hidden md:inline">After purchasing, tap <strong>"Send"</strong> in Venmo and scan the QR code or paste the receiving address shown below</span>
+                        </span>
                       </li>
                     </ol>
                     <div className="mt-auto">
@@ -380,7 +421,7 @@ export const OnRamp: React.FC = () => {
                   </div>
                   <div className="flex-1 flex justify-center">
                     {/* iPhone-style phone frame */}
-                    <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '225.5px' }}>
+                    <div className="relative bg-black rounded-[2rem] shadow-2xl" style={{ maxWidth: '208px', padding: '6.5px' }}>
                       {/* Dynamic Island with camera and microphone */}
                       <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1.5 px-2">
                         {/* Front-facing camera */}
@@ -390,9 +431,9 @@ export const OnRamp: React.FC = () => {
                       </div>
                       
                       {/* Screen area */}
-                      <div className="relative bg-black rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
+                      <div className="relative bg-black rounded-[1.75rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
                         {/* White background placeholder - maintains size before video loads */}
-                        <div className="absolute inset-0 bg-white rounded-[2rem] z-0"></div>
+                        <div className="absolute inset-0 bg-white rounded-[1.75rem] z-0"></div>
                         
                         {/* Hidden canvas for color sampling */}
                         <canvas
@@ -403,14 +444,14 @@ export const OnRamp: React.FC = () => {
                         {/* Dynamic background behind dynamic island */}
                         <div
                           ref={topBackgroundRef}
-                          className="absolute top-0 left-0 right-0 h-8 rounded-t-[2rem] z-0"
+                          className="absolute top-0 left-0 right-0 h-8 rounded-t-[1.75rem] z-0"
                           style={{ backgroundColor: topBackgroundColor }}
                         ></div>
                         
                         {/* Dynamic background behind home indicator */}
                         <div
                           ref={bottomBackgroundRef}
-                          className="absolute bottom-0 left-0 right-0 h-8 rounded-b-[2rem] z-0"
+                          className="absolute bottom-0 left-0 right-0 h-8 rounded-b-[1.75rem] z-0"
                           style={{ backgroundColor: bottomBackgroundColor }}
                         ></div>
                         
@@ -420,7 +461,7 @@ export const OnRamp: React.FC = () => {
                           loop
                           muted
                           playsInline
-                          className="w-full h-full object-cover rounded-[2rem] relative z-[1]"
+                          className="w-full h-full object-cover rounded-[1.75rem] relative z-[1]"
                           style={{ clipPath: 'inset(5% 0 3% 0)' }}
                         >
                           <source src="/Onramp demo.mp4" type="video/mp4" />

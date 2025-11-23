@@ -223,31 +223,46 @@ export const OffRamp: React.FC = () => {
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                         1
                       </span>
-                      <span>Open Venmo app</span>
+                      <span>
+                        <span className="md:hidden">Open Venmo app</span>
+                        <span className="hidden md:inline">Open the Venmo app on your mobile device</span>
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                         2
                       </span>
-                      <span>Tap <strong>Crypto</strong> icon</span>
+                      <span>
+                        <span className="md:hidden">Tap <strong>Crypto</strong> icon</span>
+                        <span className="hidden md:inline">Tap the <strong>Crypto</strong> icon in the bottom navigation bar</span>
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                         3
                       </span>
-                      <span>Tap <strong>"Receive"</strong> to view address</span>
+                      <span>
+                        <span className="md:hidden">Tap <strong>"Receive"</strong> to view address</span>
+                        <span className="hidden md:inline">Tap <strong>"Receive"</strong> to view your Ethereum receiving address</span>
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                         4
                       </span>
-                      <span>Copy address (starts with <strong>"0x"</strong>)</span>
+                      <span>
+                        <span className="md:hidden">Copy address (starts with <strong>"0x"</strong>)</span>
+                        <span className="hidden md:inline">Copy your Ethereum address (it will start with <strong>"0x"</strong>)</span>
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                         5
                       </span>
-                      <span>Click <strong>"Next"</strong> and paste address</span>
+                      <span>
+                        <span className="md:hidden">Click <strong>"Next"</strong> and paste address</span>
+                        <span className="hidden md:inline">Click <strong>"Next"</strong> below and paste your address in the form</span>
+                      </span>
                     </li>
                   </ol>
                   <div className="mt-auto">
@@ -262,7 +277,7 @@ export const OffRamp: React.FC = () => {
                 </div>
                 <div className="flex-1 flex justify-center">
                   {/* iPhone-style phone frame */}
-                  <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '225.5px' }}>
+                  <div className="relative bg-black rounded-[2rem] shadow-2xl" style={{ maxWidth: '208px', padding: '6.5px' }}>
                     {/* Dynamic Island with camera and microphone */}
                     <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1.5 px-2">
                       {/* Front-facing camera */}
@@ -272,15 +287,15 @@ export const OffRamp: React.FC = () => {
                     </div>
                     
                     {/* Screen area */}
-                    <div className="relative bg-black rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
+                    <div className="relative bg-black rounded-[1.75rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
                       {/* White background placeholder - maintains size before video loads */}
-                      <div className="absolute inset-0 bg-white rounded-[2rem] z-0"></div>
+                      <div className="absolute inset-0 bg-white rounded-[1.75rem] z-0"></div>
                       
                       {/* White background behind dynamic island */}
-                      <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-[2rem] z-0"></div>
+                      <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-[1.75rem] z-0"></div>
                       
                       {/* White background behind home indicator */}
-                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-[2rem] z-0"></div>
+                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-[1.75rem] z-0"></div>
                       
                       <video
                         ref={videoRef}
@@ -288,7 +303,7 @@ export const OffRamp: React.FC = () => {
                         loop
                         muted
                         playsInline
-                        className="w-full h-full object-cover rounded-[2rem] relative z-[1]"
+                        className="w-full h-full object-cover rounded-[1.75rem] relative z-[1]"
                         style={{ clipPath: 'inset(5% 0 3% 0)' }}
                       >
                         <source src="/Offramp demo.mp4" type="video/mp4" />
