@@ -56,27 +56,27 @@ export const Widget: React.FC = () => {
 
   return (
     <Card className="max-w-2xl mx-auto">
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
-          <div className="flex flex-col items-center sm:items-start">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-              <img src="/favicon.png" alt="Vaulto Ramp" className="w-7 h-7 sm:w-8 sm:h-8" />
+      <div className="mb-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col items-center">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <img src="/favicon.png" alt="Vaulto Ramp" className="w-8 h-8" />
               Vaulto Ramp
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">Buy and sell crypto with Venmo</p>
+            <p className="text-sm text-gray-500 mt-1">Buy and sell crypto with Venmo</p>
           </div>
           {isConnected && address ? (
-            <div className="flex flex-col items-center sm:items-end gap-2 relative z-10">
-              <div className="text-xs sm:text-sm font-medium text-gray-700">
+            <div className="flex flex-col items-center gap-2 relative z-10">
+              <div className="text-sm font-medium text-gray-700">
                 {currentDate}
               </div>
               <button
                 onClick={openAccountModal}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-mono text-xs sm:text-sm text-gray-900 transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-mono text-sm text-gray-900 transition-colors"
               >
                 {formatAddress(address)}
               </button>
-              <div className="flex gap-1.5 w-full sm:w-auto max-w-fit relative z-10">
+              <div className="flex gap-1.5 w-full max-w-fit relative z-10">
                 <a
                   href={getEtherscanAddressUrl(address, chainId)}
                   target="_blank"
@@ -113,11 +113,11 @@ export const Widget: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center sm:items-end gap-1">
-              <div className="text-xs sm:text-sm font-medium text-gray-700">
+            <div className="flex flex-col items-end gap-1">
+              <div className="text-sm font-medium text-gray-700">
                 {currentDate}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">
+              <div className="text-sm text-gray-600">
                 {isPriceLoading ? (
                   <span className="text-gray-400">Loading...</span>
                 ) : (
@@ -137,7 +137,7 @@ export const Widget: React.FC = () => {
                 updateUnderline('onramp');
               }}
               className={`
-                px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm transition-colors duration-200 flex-1 sm:flex-none
+                px-6 py-3 font-medium text-sm transition-colors duration-200
                 ${
                   activeTab === 'onramp'
                     ? 'text-blue-600'
@@ -154,7 +154,7 @@ export const Widget: React.FC = () => {
                 updateUnderline('offramp');
               }}
               className={`
-                px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm transition-colors duration-200 flex-1 sm:flex-none
+                px-6 py-3 font-medium text-sm transition-colors duration-200
                 ${
                   activeTab === 'offramp'
                     ? 'text-blue-600'
@@ -177,7 +177,7 @@ export const Widget: React.FC = () => {
       </div>
 
       {isConnected && (
-        <div className="flex border-b border-gray-200 -mt-8 sm:-mt-10 mb-4 sm:mb-6 relative z-0">
+        <div className="flex border-b border-gray-200 -mt-10 mb-6 relative z-0">
           <button
             ref={onrampButtonRef}
             onClick={() => {
@@ -185,7 +185,7 @@ export const Widget: React.FC = () => {
               updateUnderline('onramp');
             }}
             className={`
-              px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm transition-colors duration-200 flex-1 sm:flex-none
+              px-6 py-3 font-medium text-sm transition-colors duration-200
               ${
                 activeTab === 'onramp'
                   ? 'text-blue-600'
@@ -202,7 +202,7 @@ export const Widget: React.FC = () => {
               updateUnderline('offramp');
             }}
             className={`
-              px-4 sm:px-6 py-2.5 sm:py-3 font-medium text-xs sm:text-sm transition-colors duration-200 flex-1 sm:flex-none
+              px-6 py-3 font-medium text-sm transition-colors duration-200
               ${
                 activeTab === 'offramp'
                   ? 'text-blue-600'
@@ -227,10 +227,10 @@ export const Widget: React.FC = () => {
         {activeTab === 'onramp' ? <OnRamp /> : <OffRamp />}
       </div>
 
-      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+      <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="flex items-center justify-center gap-1">
-          <span className="text-xs sm:text-sm text-gray-400">Powered by</span>
-          <img src="/footerimage.png" alt="Vaulto Rails" className="h-4 sm:h-5" />
+          <span className="text-sm text-gray-400">Powered by</span>
+          <img src="/footerimage.png" alt="Vaulto Rails" className="h-5" />
         </div>
       </div>
     </Card>
