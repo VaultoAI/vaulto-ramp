@@ -380,7 +380,7 @@ export const OnRamp: React.FC = () => {
                   </div>
                   <div className="flex-1 flex justify-center">
                     {/* iPhone-style phone frame */}
-                    <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '227.5px' }}>
+                    <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '225.5px' }}>
                       {/* Dynamic Island with camera and microphone */}
                       <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1.5 px-2">
                         {/* Front-facing camera */}
