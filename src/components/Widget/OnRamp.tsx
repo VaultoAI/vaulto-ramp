@@ -100,6 +100,34 @@ export const OnRamp: React.FC = () => {
     }
   }, [isConnected, address]);
 
+  // Ensure video plays for color sampling
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const ensurePlaying = async () => {
+      if (video.paused && video.readyState >= 3) {
+        try {
+          await video.play();
+        } catch (err) {
+          // Autoplay might be blocked, but that's okay - user interaction will start it
+          console.debug('Video autoplay prevented:', err);
+        }
+      }
+    };
+
+    const handleCanPlay = () => {
+      ensurePlaying();
+    };
+
+    video.addEventListener('canplay', handleCanPlay);
+    ensurePlaying(); // Try immediately if video is already ready
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay);
+    };
+  }, []);
+
   // Handle video time update to crop last 1.5 seconds
   useEffect(() => {
     const video = videoRef.current;
@@ -216,17 +244,29 @@ export const OnRamp: React.FC = () => {
     const handleCanPlay = () => {
       // Wait a bit to ensure video frame is ready, then start sampling
       setTimeout(() => {
-        if (!hasStartedSampling) {
+        if (!hasStartedSampling && video.videoWidth > 0 && video.videoHeight > 0) {
           animationFrameId = requestAnimationFrame(sampleColors);
         }
       }, 100);
     };
 
+    const handleLoadedMetadata = () => {
+      // Video metadata is loaded, try to start sampling
+      if (!hasStartedSampling && video.videoWidth > 0 && video.videoHeight > 0) {
+        setTimeout(() => {
+          if (!hasStartedSampling) {
+            animationFrameId = requestAnimationFrame(sampleColors);
+          }
+        }, 100);
+      }
+    };
+
     // Set up event listeners
     video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
     
     // If video is already ready, start sampling
-    if (video.readyState >= 3) {
+    if (video.readyState >= 3 && video.videoWidth > 0 && video.videoHeight > 0) {
       // Video can play
       setTimeout(() => {
         if (!hasStartedSampling) {
@@ -240,6 +280,7 @@ export const OnRamp: React.FC = () => {
         cancelAnimationFrame(animationFrameId);
       }
       video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, []);
 
@@ -266,10 +307,10 @@ export const OnRamp: React.FC = () => {
 
       {/* Step 1: Connect Wallet */}
       {!isConnected && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <div className="mb-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center">
+          <div className="mb-3">
             <svg
-              className="w-12 h-12 mx-auto text-blue-600"
+              className="w-10 h-10 mx-auto text-blue-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -282,9 +323,9 @@ export const OnRamp: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
-          <p className="text-gray-600 mb-4">
-            Connect your wallet to receive Ethereum purchases.
+          <h3 className="text-base font-semibold text-gray-900 mb-2">Ready to Buy Crypto</h3>
+          <p className="text-gray-600 mb-4 text-sm">
+            Receive Ethereum from Venmo purchases.
           </p>
           <div className="flex justify-center">
             <ConnectButton />
@@ -376,7 +417,7 @@ export const OnRamp: React.FC = () => {
                           loop
                           muted
                           playsInline
-                          className="w-full h-auto rounded-[2rem]"
+                          className="w-full h-auto rounded-[2rem] relative z-[1]"
                           style={{ clipPath: 'inset(5% 0 3% 0)' }}
                         >
                           <source src="/Onramp demo.mp4" type="video/mp4" />

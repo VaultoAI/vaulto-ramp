@@ -184,10 +184,10 @@ export const OffRamp: React.FC = () => {
 
       {/* Step 1: Connect Wallet */}
       {!isConnected && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <div className="mb-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center">
+          <div className="mb-3">
             <svg
-              className="w-12 h-12 mx-auto text-blue-600"
+              className="w-10 h-10 mx-auto text-blue-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -200,9 +200,9 @@ export const OffRamp: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
-          <p className="text-gray-600 mb-4">
-            Please connect your wallet to send Ethereum to your Venmo address.
+          <h3 className="text-base font-semibold text-gray-900 mb-2">Ready to Send Crypto</h3>
+          <p className="text-gray-600 mb-4 text-sm">
+            Send Ethereum to your Venmo address.
           </p>
           <div className="flex justify-center">
             <ConnectButton />
@@ -217,7 +217,7 @@ export const OffRamp: React.FC = () => {
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
               <div className="flex gap-6 items-start">
                 <div className="flex-1 pt-4 flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">How to Get Your Venmo Ethereum Address</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">How to Send Crypto with Venmo</h3>
                   <ol className="space-y-4 text-gray-700 mb-6">
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
