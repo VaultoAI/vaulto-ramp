@@ -347,13 +347,13 @@ export const OnRamp: React.FC = () => {
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           1
                         </span>
-                        <span>Open the <strong>Venmo</strong> app on your mobile device</span>
+                        <span>Open the Venmo app on your mobile device</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           2
                         </span>
-                        <span>Navigate to the <strong>Crypto</strong> section (tap the menu icon, then select "Crypto")</span>
+                        <span>Tap the <strong>Crypto</strong> icon in the bottom navigation bar</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
