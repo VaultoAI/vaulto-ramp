@@ -25,6 +25,7 @@ export const OnRamp: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const topBackgroundRef = useRef<HTMLDivElement>(null);
   const bottomBackgroundRef = useRef<HTMLDivElement>(null);
+  const [qrCodeSize, setQrCodeSize] = useState<number>(200);
 
   // Monitor transactions when new blocks arrive
   useEffect(() => {
@@ -99,6 +100,16 @@ export const OnRamp: React.FC = () => {
       processedTxHashes.current.clear();
     }
   }, [isConnected, address]);
+
+  // Set QR code size based on screen width
+  useEffect(() => {
+    const updateQrCodeSize = () => {
+      setQrCodeSize(window.innerWidth < 640 ? 160 : 200);
+    };
+    updateQrCodeSize();
+    window.addEventListener('resize', updateQrCodeSize);
+    return () => window.removeEventListener('resize', updateQrCodeSize);
+  }, []);
 
   // Ensure video plays for color sampling
   useEffect(() => {
@@ -299,18 +310,18 @@ export const OnRamp: React.FC = () => {
   const onrampTransactions = wallet.transactions.filter((tx) => tx.type === 'onramp');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Buy Crypto</h2>
-        <p className="text-gray-600">Purchase Ethereum with Venmo and send to your connected wallet</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">Buy Crypto</h2>
+        <p className="text-sm sm:text-base text-gray-600">Purchase Ethereum with Venmo and send to your connected wallet</p>
       </div>
 
       {/* Step 1: Connect Wallet */}
       {!isConnected && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center">
-          <div className="mb-3">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-5 text-center">
+          <div className="mb-2 sm:mb-3">
             <svg
-              className="w-10 h-10 mx-auto text-blue-600"
+              className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-blue-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -323,8 +334,8 @@ export const OnRamp: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className="text-base font-semibold text-gray-900 mb-2">Ready to Buy Crypto</h3>
-          <p className="text-gray-600 mb-4 text-sm">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">Ready to Buy Crypto</h3>
+          <p className="text-gray-600 mb-3 sm:mb-4 text-xs sm:text-sm">
             Receive Ethereum from Venmo purchases.
           </p>
           <div className="flex justify-center">
@@ -338,11 +349,11 @@ export const OnRamp: React.FC = () => {
         <>
           <div>
             {activeTab === 'instructions' && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <div className="flex gap-6 items-start">
-                  <div className="flex-1 pt-4 flex flex-col">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">How to Buy Crypto with Venmo</h3>
-                    <ol className="space-y-4 text-gray-700 mb-6">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6">
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                  <div className="flex-1 pt-4 flex flex-col w-full md:w-auto">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">How to Buy Crypto with Venmo</h3>
+                    <ol className="space-y-3 sm:space-y-4 text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">
                       <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                           1
@@ -372,27 +383,27 @@ export const OnRamp: React.FC = () => {
                       <Button
                         variant="primary"
                         onClick={() => setActiveTab('address')}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                       >
                         Next
                       </Button>
                     </div>
                   </div>
-                  <div className="flex-1 flex justify-center">
+                  <div className="flex-1 flex justify-center w-full md:w-auto">
                     {/* iPhone-style phone frame */}
-                    <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '225.5px' }}>
+                    <div className="relative bg-black rounded-[2.5rem] p-1.5 sm:p-2 shadow-2xl mx-auto w-full max-w-[160px] sm:max-w-[200px] md:max-w-[225.5px]">
                       {/* Dynamic Island with camera and microphone */}
-                      <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1.5 px-2">
+                      <div className="absolute top-2 sm:top-3 left-1/2 transform -translate-x-1/2 w-12 sm:w-16 h-3 sm:h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 sm:px-2">
                         {/* Front-facing camera */}
-                        <div className="w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+                        <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 bg-gray-700 rounded-full"></div>
                         {/* Microphone */}
-                        <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                        <div className="w-0.5 sm:w-1 h-0.5 sm:h-1 bg-gray-600 rounded-full"></div>
                       </div>
                       
                       {/* Screen area */}
-                      <div className="relative bg-black rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
+                      <div className="relative bg-black rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
                         {/* White background placeholder - maintains size before video loads */}
-                        <div className="absolute inset-0 bg-white rounded-[2rem] z-0"></div>
+                        <div className="absolute inset-0 bg-white rounded-[1.5rem] sm:rounded-[2rem] z-0"></div>
                         
                         {/* Hidden canvas for color sampling */}
                         <canvas
@@ -403,14 +414,14 @@ export const OnRamp: React.FC = () => {
                         {/* Dynamic background behind dynamic island */}
                         <div
                           ref={topBackgroundRef}
-                          className="absolute top-0 left-0 right-0 h-8 rounded-t-[2rem] z-0"
+                          className="absolute top-0 left-0 right-0 h-6 sm:h-8 rounded-t-[1.5rem] sm:rounded-t-[2rem] z-0"
                           style={{ backgroundColor: topBackgroundColor }}
                         ></div>
                         
                         {/* Dynamic background behind home indicator */}
                         <div
                           ref={bottomBackgroundRef}
-                          className="absolute bottom-0 left-0 right-0 h-8 rounded-b-[2rem] z-0"
+                          className="absolute bottom-0 left-0 right-0 h-6 sm:h-8 rounded-b-[1.5rem] sm:rounded-b-[2rem] z-0"
                           style={{ backgroundColor: bottomBackgroundColor }}
                         ></div>
                         
@@ -420,7 +431,7 @@ export const OnRamp: React.FC = () => {
                           loop
                           muted
                           playsInline
-                          className="w-full h-full object-cover rounded-[2rem] relative z-[1]"
+                          className="w-full h-full object-cover rounded-[1.5rem] sm:rounded-[2rem] relative z-[1]"
                           style={{ clipPath: 'inset(5% 0 3% 0)' }}
                         >
                           <source src="/Onramp demo.mp4" type="video/mp4" />
@@ -428,7 +439,7 @@ export const OnRamp: React.FC = () => {
                         </video>
                         
                         {/* Home indicator */}
-                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gray-400 rounded-full z-10"></div>
+                        <div className="absolute bottom-0.5 sm:bottom-1 left-1/2 transform -translate-x-1/2 w-14 sm:w-20 h-0.5 sm:h-1 bg-gray-400 rounded-full z-10"></div>
                       </div>
                     </div>
                   </div>
@@ -437,55 +448,69 @@ export const OnRamp: React.FC = () => {
             )}
 
             {activeTab === 'address' && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                  <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-bold">
                     2
                   </span>
                   Your Receiving Address
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
                   Send your purchased Ethereum to this address:
                 </p>
                 
                 {/* QR Code Display */}
-                <div className="flex justify-center mb-6">
-                  <div className="bg-white border border-gray-300 rounded-lg p-4 inline-block">
+                <div className="flex justify-center mb-4 sm:mb-6">
+                  <div className="bg-white border border-gray-300 rounded-lg p-3 sm:p-4 inline-block">
                     {address && (
                       <QRCodeSVG
                         value={address}
-                        size={200}
+                        size={qrCodeSize}
                         level="H"
                         includeMargin={true}
                       />
                     )}
                   </div>
                 </div>
-                <p className="text-center text-sm text-gray-600 mb-4">
+                <p className="text-center text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                   Scan this QR code with Venmo to send funds to your wallet
                 </p>
 
-                <div className="flex gap-2 mb-6">
-                  <div className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 font-mono text-sm text-gray-900">
+                <div className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
+                  <div className="flex-1 bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 font-mono text-xs sm:text-sm text-gray-900 break-all">
                     {address}
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleCopyAddress}
-                    className="whitespace-nowrap"
+                    className="w-full sm:w-auto flex items-center justify-center lg:justify-start"
+                    title={copied ? 'Copied!' : 'Copy address'}
                   >
-                    {copied ? 'Copied!' : 'Copy'}
+                    {/* Icon - visible on screens under 900px (below lg breakpoint) */}
+                    {copied ? (
+                      <svg className="w-5 h-5 text-green-600 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                    {/* Text - hidden on screens under 900px, visible on lg and above */}
+                    <span className="hidden lg:inline">
+                      {copied ? 'Copied!' : 'Copy'}
+                    </span>
                   </Button>
                 </div>
-                <p className="mb-6 text-sm text-gray-500 font-bold">
+                <p className="mb-4 sm:mb-6 text-xs sm:text-sm text-gray-500 font-bold">
                   Send only Ethereum (ETH) to this address. Other tokens may result in loss of funds.
                 </p>
                 <div>
                   <Button
                     variant="primary"
                     onClick={() => setActiveTab('history')}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                   >
                     Next
                   </Button>
@@ -494,23 +519,23 @@ export const OnRamp: React.FC = () => {
             )}
 
             {activeTab === 'history' && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-bold">
                       3
                     </span>
                     Deposit Tracking
                   </h3>
                   {monitoringActive && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span>Monitoring for incoming transactions</span>
                     </div>
                   )}
                 </div>
                 {onrampTransactions.length > 0 && (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {onrampTransactions.map((transaction) => (
                       <TransactionStatusDisplay key={transaction.id} transaction={transaction} />
                     ))}

@@ -38,6 +38,7 @@ export const OffRamp: React.FC = () => {
   const [selectedAmountType, setSelectedAmountType] = useState<'preset' | 'custom' | null>(null);
   const [selectedPresetAmount, setSelectedPresetAmount] = useState<string | null>(null);
   const [notifiedHashes, setNotifiedHashes] = useState<Set<string>>(new Set());
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const customAmountInputRef = useRef<HTMLInputElement>(null);
 
@@ -155,6 +156,16 @@ export const OffRamp: React.FC = () => {
     }
   }, [hash, venmoAddress, usdAmount, ethPrice, sendCrypto]);
 
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Handle video time update to crop last 2.5 seconds
   useEffect(() => {
     const video = videoRef.current;
@@ -176,18 +187,18 @@ export const OffRamp: React.FC = () => {
   const offrampTransactions = wallet.transactions.filter((tx) => tx.type === 'offramp');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Send Crypto</h2>
-        <p className="text-gray-600">Send Ethereum from your wallet to your Venmo address</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">Send Crypto</h2>
+        <p className="text-sm sm:text-base text-gray-600">Send Ethereum from your wallet to your Venmo address</p>
       </div>
 
       {/* Step 1: Connect Wallet */}
       {!isConnected && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center">
-          <div className="mb-3">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-5 text-center">
+          <div className="mb-2 sm:mb-3">
             <svg
-              className="w-10 h-10 mx-auto text-blue-600"
+              className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-blue-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -200,8 +211,8 @@ export const OffRamp: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className="text-base font-semibold text-gray-900 mb-2">Ready to Send Crypto</h3>
-          <p className="text-gray-600 mb-4 text-sm">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">Ready to Send Crypto</h3>
+          <p className="text-gray-600 mb-3 sm:mb-4 text-xs sm:text-sm">
             Send Ethereum to your Venmo address.
           </p>
           <div className="flex justify-center">
@@ -214,11 +225,11 @@ export const OffRamp: React.FC = () => {
       {isConnected && (
         <>
           {activeTab === 'instructions' && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <div className="flex gap-6 items-start">
-                <div className="flex-1 pt-4 flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">How to Send Crypto with Venmo</h3>
-                  <ol className="space-y-4 text-gray-700 mb-6">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex-1 pt-4 flex flex-col w-full md:w-auto">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">How to Send Crypto with Venmo</h3>
+                  <ol className="space-y-3 sm:space-y-4 text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                         1
@@ -254,33 +265,33 @@ export const OffRamp: React.FC = () => {
                     <Button
                       variant="primary"
                       onClick={() => setActiveTab('send')}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                     >
                       Next
                     </Button>
                   </div>
                 </div>
-                <div className="flex-1 flex justify-center">
+                <div className="flex-1 flex justify-center w-full md:w-auto">
                   {/* iPhone-style phone frame */}
-                  <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl" style={{ maxWidth: '225.5px' }}>
+                  <div className="relative bg-black rounded-[2.5rem] p-1.5 sm:p-2 shadow-2xl mx-auto w-full max-w-[160px] sm:max-w-[200px] md:max-w-[225.5px]">
                     {/* Dynamic Island with camera and microphone */}
-                    <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1.5 px-2">
+                    <div className="absolute top-2 sm:top-3 left-1/2 transform -translate-x-1/2 w-12 sm:w-16 h-3 sm:h-4 bg-black rounded-full z-10 flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 sm:px-2">
                       {/* Front-facing camera */}
-                      <div className="w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+                      <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 bg-gray-700 rounded-full"></div>
                       {/* Microphone */}
-                      <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                      <div className="w-0.5 sm:w-1 h-0.5 sm:h-1 bg-gray-600 rounded-full"></div>
                     </div>
                     
                     {/* Screen area */}
-                    <div className="relative bg-black rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
+                    <div className="relative bg-black rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
                       {/* White background placeholder - maintains size before video loads */}
-                      <div className="absolute inset-0 bg-white rounded-[2rem] z-0"></div>
+                      <div className="absolute inset-0 bg-white rounded-[1.5rem] sm:rounded-[2rem] z-0"></div>
                       
                       {/* White background behind dynamic island */}
-                      <div className="absolute top-0 left-0 right-0 h-8 bg-white rounded-t-[2rem] z-0"></div>
+                      <div className="absolute top-0 left-0 right-0 h-6 sm:h-8 bg-white rounded-t-[1.5rem] sm:rounded-t-[2rem] z-0"></div>
                       
                       {/* White background behind home indicator */}
-                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-[2rem] z-0"></div>
+                      <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-8 bg-white rounded-b-[1.5rem] sm:rounded-b-[2rem] z-0"></div>
                       
                       <video
                         ref={videoRef}
@@ -288,7 +299,7 @@ export const OffRamp: React.FC = () => {
                         loop
                         muted
                         playsInline
-                        className="w-full h-full object-cover rounded-[2rem] relative z-[1]"
+                        className="w-full h-full object-cover rounded-[1.5rem] sm:rounded-[2rem] relative z-[1]"
                         style={{ clipPath: 'inset(5% 0 3% 0)' }}
                       >
                         <source src="/Offramp demo.mp4" type="video/mp4" />
@@ -296,7 +307,7 @@ export const OffRamp: React.FC = () => {
                       </video>
                       
                       {/* Home indicator */}
-                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gray-400 rounded-full z-10"></div>
+                      <div className="absolute bottom-0.5 sm:bottom-1 left-1/2 transform -translate-x-1/2 w-14 sm:w-20 h-0.5 sm:h-1 bg-gray-400 rounded-full z-10"></div>
                     </div>
                   </div>
                 </div>
@@ -305,15 +316,15 @@ export const OffRamp: React.FC = () => {
           )}
 
           {activeTab === 'send' && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                  <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-bold">
                     2
                   </span>
                   Send Ethereum to Venmo
                 </h3>
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between gap-2 text-sm">
+                <div className="mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-gray-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm">
                     <div className="flex items-center gap-2 text-gray-600">
                       <span>Current ETH Price:</span>
                       <span className="font-semibold text-gray-900">
@@ -327,7 +338,7 @@ export const OffRamp: React.FC = () => {
                     )}
                   </div>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                   <Input
                     label="Your Venmo Ethereum Address"
                     type="text"
@@ -339,15 +350,15 @@ export const OffRamp: React.FC = () => {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Amount to Send (USD)
                     </label>
-                    <div className="flex flex-wrap gap-3 mb-3">
+                    <div className="flex flex-wrap gap-2 sm:gap-3 mb-2 sm:mb-3">
                       <button
                         type="button"
                         onClick={() => handlePresetClick('20')}
                         className={`
-                          px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200
+                          px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex-1 sm:flex-none
                           ${
                             selectedPresetAmount === '20' && selectedAmountType === 'preset'
                               ? 'bg-blue-600 text-white shadow-md'
@@ -361,7 +372,7 @@ export const OffRamp: React.FC = () => {
                         type="button"
                         onClick={() => handlePresetClick('50')}
                         className={`
-                          px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200
+                          px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex-1 sm:flex-none
                           ${
                             selectedPresetAmount === '50' && selectedAmountType === 'preset'
                               ? 'bg-blue-600 text-white shadow-md'
@@ -375,7 +386,7 @@ export const OffRamp: React.FC = () => {
                         type="button"
                         onClick={() => handlePresetClick('100')}
                         className={`
-                          px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200
+                          px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex-1 sm:flex-none
                           ${
                             selectedPresetAmount === '100' && selectedAmountType === 'preset'
                               ? 'bg-blue-600 text-white shadow-md'
@@ -385,8 +396,8 @@ export const OffRamp: React.FC = () => {
                       >
                         $100
                       </button>
-                      <div className="relative inline-flex items-center">
-                        <span className={`absolute left-3 font-medium text-sm z-10 ${
+                      <div className="relative inline-flex items-center w-full sm:w-auto">
+                        <span className={`absolute left-3 font-medium text-xs sm:text-sm z-10 ${
                           selectedAmountType === 'custom' && usdAmount
                             ? 'text-white'
                             : 'text-gray-700'
@@ -404,8 +415,9 @@ export const OffRamp: React.FC = () => {
                             setSelectedPresetAmount(null);
                           }}
                           className={`
-                            px-4 py-3 pl-7 pr-4 rounded-lg font-medium text-sm transition-all duration-200
+                            px-4 py-2 sm:py-3 pl-7 pr-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200
                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                            w-full sm:w-auto
                             ${
                               selectedAmountType === 'custom' && usdAmount
                                 ? 'bg-blue-600 text-white shadow-md border-2 border-blue-600'
@@ -415,17 +427,17 @@ export const OffRamp: React.FC = () => {
                             placeholder:text-gray-400
                           `}
                           style={{
-                            width: '110px',
+                            width: isMobile ? '100%' : '110px',
                           }}
                         />
                       </div>
                     </div>
                     {amountError && (
-                      <p className="mt-1 text-sm text-red-600">{amountError}</p>
+                      <p className="mt-1 text-xs sm:text-sm text-red-600">{amountError}</p>
                     )}
                     {usdAmount && !amountError && ethPrice > 0 && !isNaN(parseFloat(usdAmount)) && parseFloat(usdAmount) > 0 && (
-                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center justify-between text-sm">
+                      <div className="mt-2 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
                           <span className="text-gray-600">You will send:</span>
                           <span className="font-semibold text-gray-900">
                             {formatETH(usdToEth(parseFloat(usdAmount), ethPrice))} ETH
@@ -439,8 +451,8 @@ export const OffRamp: React.FC = () => {
                   </div>
 
                   {sendError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-sm text-red-600">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm text-red-600">
                         {formatErrorMessage(sendError)}
                       </p>
                     </div>
@@ -460,19 +472,19 @@ export const OffRamp: React.FC = () => {
             )}
 
           {activeTab === 'history' && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-bold">
                   3
                 </span>
                 Transaction History
               </h3>
               {offrampTransactions.length === 0 ? (
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   Your sent transactions will appear here.
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {offrampTransactions.map((transaction) => (
                     <TransactionStatusDisplay key={transaction.id} transaction={transaction} />
                   ))}
