@@ -16,3 +16,39 @@ code {
     monospace;
 }
 
+/* RainbowKit Account Modal Customization */
+/* Customize the account modal appearance */
+[data-rk] {
+  /* Override modal background */
+  --rk-modal-backdrop: rgba(0, 0, 0, 0.5);
+}
+
+/* Customize account modal content */
+[data-rk] [data-testid="rk-account-modal"] {
+  /* Add custom styles here */
+}
+
+/* Customize the profile picture/avatar */
+[data-rk] [data-testid="rk-account-modal"] img {
+  /* Example: Add border radius, shadow, etc. */
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Customize buttons in the account modal */
+[data-rk] [data-testid="rk-account-modal"] button {
+  /* Example: Custom button styles */
+  transition: all 0.2s ease;
+}
+
+/* Customize the copy address button */
+[data-rk] [data-testid="rk-account-modal"] button[aria-label*="copy"] {
+  /* Add specific styles for copy button */
+}
+
+/* Customize the disconnect button */
+[data-rk] [data-testid="rk-account-modal"] button[aria-label*="disconnect"] {
+  /* Add specific styles for disconnect button */
+  /* Example: Make it more prominent or styled differently */
+}
+

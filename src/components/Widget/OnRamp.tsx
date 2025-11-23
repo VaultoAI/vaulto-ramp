@@ -390,7 +390,10 @@ export const OnRamp: React.FC = () => {
                       </div>
                       
                       {/* Screen area */}
-                      <div className="relative bg-black rounded-[2rem] overflow-hidden">
+                      <div className="relative bg-black rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9 / 19.5' }}>
+                        {/* White background placeholder - maintains size before video loads */}
+                        <div className="absolute inset-0 bg-white rounded-[2rem] z-0"></div>
+                        
                         {/* Hidden canvas for color sampling */}
                         <canvas
                           ref={canvasRef}
@@ -417,7 +420,7 @@ export const OnRamp: React.FC = () => {
                           loop
                           muted
                           playsInline
-                          className="w-full h-auto rounded-[2rem] relative z-[1]"
+                          className="w-full h-full object-cover rounded-[2rem] relative z-[1]"
                           style={{ clipPath: 'inset(5% 0 3% 0)' }}
                         >
                           <source src="/Onramp demo.mp4" type="video/mp4" />
@@ -425,7 +428,7 @@ export const OnRamp: React.FC = () => {
                         </video>
                         
                         {/* Home indicator */}
-                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gray-400 rounded-full z-10"></div>
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gray-400 rounded-full z-10"></div>
                       </div>
                     </div>
                   </div>

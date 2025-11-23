@@ -66,7 +66,7 @@ export const Widget: React.FC = () => {
             <p className="text-sm text-gray-500 mt-1">Buy and sell crypto with Venmo</p>
           </div>
           {isConnected && address ? (
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 relative z-10">
               <div className="text-sm font-medium text-gray-700">
                 {currentDate}
               </div>
@@ -76,15 +76,15 @@ export const Widget: React.FC = () => {
               >
                 {formatAddress(address)}
               </button>
-              <div className="flex gap-1.5 w-full max-w-fit">
+              <div className="flex gap-1.5 w-full max-w-fit relative z-10">
                 <a
                   href={getEtherscanAddressUrl(address, chainId)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-2 py-1 text-xs bg-blue-200 hover:bg-blue-300 text-blue-700 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap"
+                  className="px-2 py-1 text-xs bg-blue-200 hover:bg-blue-300 text-blue-700 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap relative z-10 pointer-events-auto"
                 >
                   <svg
-                    className="w-3 h-3"
+                    className="w-3 h-3 pointer-events-none"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -101,23 +101,14 @@ export const Widget: React.FC = () => {
                 </a>
                 <button
                   onClick={() => disconnect()}
-                  className="px-2 py-1 text-xs bg-red-200 hover:bg-red-300 text-red-700 rounded-lg transition-colors flex items-center justify-center"
+                  className="px-2 py-1 text-xs bg-red-200 hover:bg-red-300 text-red-700 rounded-lg transition-colors flex items-center justify-center relative z-10 pointer-events-auto"
                   title="Disconnect"
                 >
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
+                  <img 
+                    src="/power.png" 
+                    alt="Disconnect" 
+                    className="w-3.5 h-3.5 pointer-events-none"
+                  />
                 </button>
               </div>
             </div>
@@ -186,7 +177,7 @@ export const Widget: React.FC = () => {
       </div>
 
       {isConnected && (
-        <div className="flex border-b border-gray-200 -mt-10 mb-6 relative">
+        <div className="flex border-b border-gray-200 -mt-10 mb-6 relative z-0">
           <button
             ref={onrampButtonRef}
             onClick={() => {
@@ -245,4 +236,3 @@ export const Widget: React.FC = () => {
     </Card>
   );
 };
-
