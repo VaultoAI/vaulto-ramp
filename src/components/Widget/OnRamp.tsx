@@ -37,8 +37,6 @@ export const OnRamp: React.FC = () => {
       // Validate that it's a valid Ethereum address format
       if (/^0x[a-fA-F0-9]{40}$/.test(walletAddressParam)) {
         setUrlWalletAddress(walletAddressParam);
-        // Automatically show the address tab when coming from Vaulto
-        setActiveTab('address');
       }
     }
   }, []);
