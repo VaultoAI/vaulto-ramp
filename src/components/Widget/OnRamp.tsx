@@ -27,9 +27,29 @@ export const OnRamp: React.FC = () => {
   const bottomBackgroundRef = useRef<HTMLDivElement>(null);
   const isLockedToGray = useRef<boolean>(false);
 
+  // Get walletAddress from URL parameters
+  const [urlWalletAddress, setUrlWalletAddress] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const walletAddressParam = searchParams.get('walletAddress');
+    if (walletAddressParam) {
+      // Validate that it's a valid Ethereum address format
+      if (/^0x[a-fA-F0-9]{40}$/.test(walletAddressParam)) {
+        setUrlWalletAddress(walletAddressParam);
+        // Automatically show the address tab when coming from Vaulto
+        setActiveTab('address');
+      }
+    }
+  }, []);
+
+  // Use URL address if available, otherwise use connected wallet address
+  const receivingAddress = urlWalletAddress || address;
+  const shouldShowContent = isConnected || urlWalletAddress !== null;
+
   // Monitor transactions when new blocks arrive
   useEffect(() => {
-    if (!isConnected || !address || !monitoringActive || !publicClient || !blockNumber) return;
+    if (!receivingAddress || !monitoringActive || !publicClient || !blockNumber) return;
 
     const checkTransactions = async () => {
       try {
@@ -49,7 +69,7 @@ export const OnRamp: React.FC = () => {
 
             // Check each transaction in the block
             for (const tx of block.transactions) {
-              if (typeof tx === 'object' && tx.to && tx.to.toLowerCase() === address.toLowerCase()) {
+              if (typeof tx === 'object' && tx.to && tx.to.toLowerCase() === receivingAddress.toLowerCase()) {
                 const txHash = tx.hash;
                 
                 // Skip if we've already processed this transaction
@@ -68,7 +88,7 @@ export const OnRamp: React.FC = () => {
                     processedTxHashes.current.add(txHash);
                     
                     // Add transaction to wallet context
-                    addDetectedTransaction(txHash, ethAmount, address, status);
+                    addDetectedTransaction(txHash, ethAmount, receivingAddress, status);
                   }
                 } catch (err) {
                   // Transaction receipt might not be available yet, skip
@@ -89,17 +109,17 @@ export const OnRamp: React.FC = () => {
     };
 
     checkTransactions();
-  }, [blockNumber, isConnected, address, monitoringActive, publicClient, addDetectedTransaction]);
+  }, [blockNumber, receivingAddress, monitoringActive, publicClient, addDetectedTransaction]);
 
-  // Start monitoring when wallet is connected
+  // Start monitoring when wallet is connected or URL address is provided
   useEffect(() => {
-    if (isConnected && address) {
+    if (receivingAddress) {
       setMonitoringActive(true);
     } else {
       setMonitoringActive(false);
       processedTxHashes.current.clear();
     }
-  }, [isConnected, address]);
+  }, [receivingAddress]);
 
   // Ensure video plays for color sampling
   useEffect(() => {
@@ -314,9 +334,9 @@ export const OnRamp: React.FC = () => {
   }, []);
 
   const handleCopyAddress = async () => {
-    if (!address) return;
+    if (!receivingAddress) return;
     try {
-      await navigator.clipboard.writeText(address);
+      await navigator.clipboard.writeText(receivingAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -334,8 +354,8 @@ export const OnRamp: React.FC = () => {
         <p className="text-gray-600">Purchase Ethereum with Venmo and send to your connected wallet</p>
       </div>
 
-      {/* Step 1: Connect Wallet */}
-      {!isConnected && (
+      {/* Step 1: Connect Wallet - Only show if no URL address provided */}
+      {!shouldShowContent && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center">
           <div className="mb-3">
             <svg
@@ -363,7 +383,7 @@ export const OnRamp: React.FC = () => {
       )}
 
       {/* Content */}
-      {isConnected && (
+      {shouldShowContent && (
         <>
           <div>
             {activeTab === 'instructions' && (
@@ -492,9 +512,9 @@ export const OnRamp: React.FC = () => {
                 {/* QR Code Display */}
                 <div className="flex justify-center mb-6">
                   <div className="bg-white border border-gray-300 rounded-lg p-4 inline-block">
-                    {address && (
+                    {receivingAddress && (
                       <QRCodeSVG
-                        value={address}
+                        value={receivingAddress}
                         size={200}
                         level="H"
                         includeMargin={true}
@@ -508,7 +528,7 @@ export const OnRamp: React.FC = () => {
 
                 <div className="flex gap-2 mb-6">
                   <div className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 font-mono text-sm text-gray-900">
-                    {address}
+                    {receivingAddress}
                   </div>
                   <Button
                     type="button"
