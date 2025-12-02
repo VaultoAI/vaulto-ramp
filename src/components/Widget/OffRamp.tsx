@@ -1,35 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useChainId } from 'wagmi';
+import { useAccount, useSendTransaction, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useWallet } from '../../hooks/useWallet';
 import { useEthPrice } from '../../hooks/useEthPrice';
-import { useToast } from '../../context/ToastContext';
 import { Input } from '../shared/Input';
 import { Button } from '../shared/Button';
 import { validateUsdAmount, validateEthAddress } from '../../utils/validators';
 import { TransactionStatusDisplay } from './TransactionStatus';
 import { parseEther } from 'viem';
+import { getEnsAddress } from 'viem/ens';
 import { usdToEth, formatErrorMessage, formatUSD, formatETH } from '../../utils/formatters';
 
 type OffRampTab = 'instructions' | 'send' | 'history';
 
-const getEtherscanUrl = (txHash: string, chainId: number): string => {
-  // Mainnet chain ID is 1, Sepolia is 11155111
-  if (chainId === 1) {
-    return `https://etherscan.io/tx/${txHash}`;
-  } else if (chainId === 11155111) {
-    return `https://sepolia.etherscan.io/tx/${txHash}`;
-  }
-  // Default to mainnet if unknown chain
-  return `https://etherscan.io/tx/${txHash}`;
-};
-
 export const OffRamp: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
+  const publicClient = usePublicClient();
   const { wallet, sendCrypto, updateTransactionStatus } = useWallet();
   const { price: ethPrice, isLoading: isPriceLoading, error: priceError } = useEthPrice();
-  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<OffRampTab>('instructions');
   const [venmoAddress, setVenmoAddress] = useState('');
   const [usdAmount, setUsdAmount] = useState('');
@@ -37,7 +25,8 @@ export const OffRamp: React.FC = () => {
   const [amountError, setAmountError] = useState<string | undefined>();
   const [selectedAmountType, setSelectedAmountType] = useState<'preset' | 'custom' | null>(null);
   const [selectedPresetAmount, setSelectedPresetAmount] = useState<string | null>(null);
-  const [notifiedHashes, setNotifiedHashes] = useState<Set<string>>(new Set());
+  const [isResolvingEns, setIsResolvingEns] = useState(false);
+  const processedTxHashes = useRef<Set<string>>(new Set());
   const videoRef = useRef<HTMLVideoElement>(null);
   const customAmountInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,42 +41,76 @@ export const OffRamp: React.FC = () => {
     hash,
   });
 
-  // Handle transaction confirmation and show notification only when confirmed
+  // Clear processed hashes when wallet disconnects
+  useEffect(() => {
+    if (!isConnected) {
+      processedTxHashes.current.clear();
+    }
+  }, [isConnected]);
+
+  // Handle transaction confirmation - update status but don't show toast (user sees tracking page)
   useEffect(() => {
     if (hash) {
       if (isConfirmed) {
         updateTransactionStatus(hash, 'completed');
-        const transaction = wallet.transactions.find((tx) => tx.txHash === hash);
-        if (transaction) {
-          // Show notification only once when transaction is confirmed (transaction is posted and confirmed)
-          if (!notifiedHashes.has(hash)) {
-            const etherscanUrl = getEtherscanUrl(hash, chainId);
-            const ethAmount = transaction.amount;
-            const usdValue = transaction.usdAmount || 0;
-            showToast(
-              'success',
-              `Transaction confirmed! ${formatETH(ethAmount)} ETH ($${formatUSD(usdValue)})`,
-              { etherscanLink: etherscanUrl, duration: 8000 }
-            );
-            setNotifiedHashes((prev) => new Set(prev).add(hash));
-          }
-        }
       } else if (isFailed) {
         updateTransactionStatus(hash, 'failed');
-        // Only show error notification if we haven't already notified about this hash
-        if (!notifiedHashes.has(hash)) {
-          showToast('error', 'Transaction failed. Please try again.', { duration: 5000 });
-          setNotifiedHashes((prev) => new Set(prev).add(hash));
-        }
       }
     }
-  }, [isConfirmed, isFailed, hash, wallet.transactions, updateTransactionStatus, chainId, showToast, notifiedHashes]);
+  }, [isConfirmed, isFailed, hash, updateTransactionStatus]);
+
+  const isEnsName = (value: string): boolean => {
+    const trimmed = value.trim();
+    // Check if it looks like an ENS name (contains .eth or doesn't start with 0x)
+    return trimmed.includes('.eth') || (trimmed.length > 0 && !trimmed.startsWith('0x') && trimmed.includes('.'));
+  };
 
   const handleVenmoAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setVenmoAddress(value);
-    const validation = validateEthAddress(value);
-    setAddressError(validation.error);
+    // Don't validate immediately if it looks like an ENS name
+    if (!isEnsName(value)) {
+      const validation = validateEthAddress(value);
+      setAddressError(validation.error);
+    } else {
+      // Clear error if it's an ENS name (will be validated on Enter or submit)
+      setAddressError(undefined);
+    }
+  };
+
+  const handleAddressKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && venmoAddress.trim() && isEnsName(venmoAddress)) {
+      e.preventDefault();
+      await resolveEnsName(venmoAddress.trim());
+    }
+  };
+
+  const resolveEnsName = async (ensName: string) => {
+    if (!publicClient) {
+      setAddressError('Unable to resolve ENS name: Wallet not connected');
+      return;
+    }
+
+    setIsResolvingEns(true);
+    setAddressError(undefined);
+
+    try {
+      const resolvedAddress = await getEnsAddress(publicClient, { name: ensName });
+      
+      if (resolvedAddress) {
+        setVenmoAddress(resolvedAddress);
+        // Validate the resolved address
+        const validation = validateEthAddress(resolvedAddress);
+        setAddressError(validation.error);
+      } else {
+        setAddressError('ENS name not found or does not resolve to an address');
+      }
+    } catch (error) {
+      console.error('Error resolving ENS name:', error);
+      setAddressError('Failed to resolve ENS name. Please check the name and try again.');
+    } finally {
+      setIsResolvingEns(false);
+    }
   };
 
   const handleUsdAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +133,40 @@ export const OffRamp: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const addressValidation = validateEthAddress(venmoAddress);
+    let addressToUse = venmoAddress.trim();
+    
+    // Resolve ENS name if needed
+    if (addressToUse && isEnsName(addressToUse)) {
+      if (!publicClient) {
+        setAddressError('Unable to resolve ENS name: Wallet not connected');
+        return;
+      }
+      
+      setIsResolvingEns(true);
+      setAddressError(undefined);
+      
+      try {
+        const resolvedAddress = await getEnsAddress(publicClient, { name: addressToUse });
+        
+        if (resolvedAddress) {
+          addressToUse = resolvedAddress;
+          setVenmoAddress(resolvedAddress);
+        } else {
+          setAddressError('ENS name not found or does not resolve to an address');
+          setIsResolvingEns(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error resolving ENS name:', error);
+        setAddressError('Failed to resolve ENS name. Please check the name and try again.');
+        setIsResolvingEns(false);
+        return;
+      } finally {
+        setIsResolvingEns(false);
+      }
+    }
+    
+    const addressValidation = validateEthAddress(addressToUse);
     const amountValidation = validateUsdAmount(usdAmount);
 
     if (!addressValidation.isValid) {
@@ -132,7 +188,7 @@ export const OffRamp: React.FC = () => {
       const ethAmount = usdToEth(parseFloat(usdAmount), ethPrice);
       // Send transaction
       sendTransaction({
-        to: venmoAddress.trim() as `0x${string}`,
+        to: addressToUse as `0x${string}`,
         value: parseEther(ethAmount.toString()),
       });
     } catch (err) {
@@ -143,15 +199,28 @@ export const OffRamp: React.FC = () => {
   // Track transaction when hash is available
   useEffect(() => {
     if (hash && venmoAddress && usdAmount) {
+      const hashLower = hash.toLowerCase();
+      
+      // Skip if this hash has already been processed
+      if (processedTxHashes.current.has(hashLower)) {
+        return;
+      }
+      
       const ethAmount = usdToEth(parseFloat(usdAmount), ethPrice);
       const usdValue = parseFloat(usdAmount);
       sendCrypto(hash, ethAmount, usdValue, venmoAddress.trim());
+      
+      // Mark this hash as processed
+      processedTxHashes.current.add(hashLower);
       
       // Clear form after successful send
       setVenmoAddress('');
       setUsdAmount('');
       setSelectedAmountType(null);
       setSelectedPresetAmount(null);
+      
+      // Switch to history tab to show transaction tracking
+      setActiveTab('history');
     }
   }, [hash, venmoAddress, usdAmount, ethPrice, sendCrypto]);
 
@@ -172,8 +241,16 @@ export const OffRamp: React.FC = () => {
     };
   }, []);
 
-  // Filter offramp transactions
-  const offrampTransactions = wallet.transactions.filter((tx) => tx.type === 'offramp');
+  // Filter offramp transactions and deduplicate by txHash
+  const offrampTransactions = wallet.transactions
+    .filter((tx) => tx.type === 'offramp')
+    .filter((tx, index, self) => {
+      // If transaction has no txHash, keep it (shouldn't happen for offramp, but safety check)
+      if (!tx.txHash) return true;
+      // Keep only the first occurrence of each txHash (case-insensitive)
+      const hashLower = tx.txHash.toLowerCase();
+      return index === self.findIndex((t) => t.txHash && t.txHash.toLowerCase() === hashLower);
+    });
 
   return (
     <div className="space-y-6">
@@ -343,15 +420,19 @@ export const OffRamp: React.FC = () => {
                   </div>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <Input
-                    label="Your Venmo Ethereum Address"
-                    type="text"
-                    placeholder="0x..."
-                    value={venmoAddress}
-                    onChange={handleVenmoAddressChange}
-                    error={addressError}
-                    helperText="Paste your Venmo Ethereum receiving address here"
-                  />
+                  <div>
+                    <Input
+                      label="Your Venmo Ethereum Address"
+                      type="text"
+                      placeholder="0x... or name.eth"
+                      value={venmoAddress}
+                      onChange={handleVenmoAddressChange}
+                      onKeyDown={handleAddressKeyDown}
+                      error={addressError}
+                      helperText={isResolvingEns ? 'Resolving ENS name...' : 'Paste your Venmo Ethereum receiving address or ENS name'}
+                      disabled={isResolvingEns}
+                    />
+                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -476,21 +557,30 @@ export const OffRamp: React.FC = () => {
 
           {activeTab === 'history' && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
-                  3
-                </span>
-                Transaction History
-              </h3>
-              {offrampTransactions.length === 0 ? (
-                <p className="text-gray-600">
-                  Your sent transactions will appear here.
-                </p>
-              ) : (
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">
+                    3
+                  </span>
+                  Withdrawal Tracking
+                </h3>
+                {(isSending || isConfirming) && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                    <span>{isSending ? 'Sending transaction...' : 'Waiting for confirmation...'}</span>
+                  </div>
+                )}
+              </div>
+              {offrampTransactions.length > 0 ? (
                 <div className="space-y-4">
                   {offrampTransactions.map((transaction) => (
                     <TransactionStatusDisplay key={transaction.id} transaction={transaction} />
                   ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-2">No transactions yet</p>
+                  <p className="text-sm text-gray-500">Your sent transactions will appear here</p>
                 </div>
               )}
             </div>

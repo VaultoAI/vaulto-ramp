@@ -119,26 +119,43 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, []);
 
   const sendCrypto = useCallback((txHash: string, ethAmount: number, usdAmount: number, toAddress: string): string => {
-    const transactionId = generateTransactionId();
+    let transactionId: string;
     
-    const transaction: Transaction = {
-      id: transactionId,
-      type: 'offramp',
-      amount: ethAmount,
-      usdAmount,
-      status: 'processing',
-      timestamp: new Date(),
-      address: toAddress,
-      txHash,
-    };
+    setWallet((prev) => {
+      // Check if a transaction with this hash already exists
+      const existingTransaction = prev.transactions.find(
+        (tx) => tx.txHash && tx.txHash.toLowerCase() === txHash.toLowerCase()
+      );
 
-    setWallet((prev) => ({
-      ...prev,
-      transactions: [transaction, ...prev.transactions],
-      balance: prev.balance - ethAmount,
-    }));
+      // If transaction already exists, return its ID without modifying state
+      if (existingTransaction) {
+        transactionId = existingTransaction.id;
+        return prev;
+      }
 
-    return transactionId;
+      // Create new transaction
+      const newTransactionId = generateTransactionId();
+      transactionId = newTransactionId;
+      
+      const transaction: Transaction = {
+        id: newTransactionId,
+        type: 'offramp',
+        amount: ethAmount,
+        usdAmount,
+        status: 'processing',
+        timestamp: new Date(),
+        address: toAddress,
+        txHash,
+      };
+
+      return {
+        ...prev,
+        transactions: [transaction, ...prev.transactions],
+        balance: prev.balance - ethAmount,
+      };
+    });
+
+    return transactionId!;
   }, []);
 
   const updateTransactionStatus = useCallback((txHash: string, status: TransactionStatus): void => {

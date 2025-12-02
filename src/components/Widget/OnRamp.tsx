@@ -591,11 +591,20 @@ export const OnRamp: React.FC = () => {
                     </div>
                   )}
                 </div>
-                {onrampTransactions.length > 0 && (
+                {onrampTransactions.length > 0 ? (
                   <div className="space-y-4">
                     {onrampTransactions.map((transaction) => (
                       <TransactionStatusDisplay key={transaction.id} transaction={transaction} />
                     ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-2">No deposits yet</p>
+                    <p className="text-sm text-gray-500">
+                      {monitoringActive 
+                        ? 'Waiting for incoming transactions...' 
+                        : 'Your incoming transactions will appear here'}
+                    </p>
                   </div>
                 )}
               </div>
